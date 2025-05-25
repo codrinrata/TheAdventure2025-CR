@@ -83,6 +83,8 @@ public class Engine
         var msSinceLastFrame = (currentTime - _lastUpdate).TotalMilliseconds;
         _lastUpdate = currentTime;
 
+        bool respawn = _input.IsKeyRPressed();
+
         if (_player == null)
         {
             return;
@@ -94,6 +96,11 @@ public class Engine
         double right = _input.IsRightPressed() ? 1.0 : 0.0;
         bool isAttacking = _input.IsKeyAPressed() && (up + down + left + right <= 1);
         bool addBomb = _input.IsKeyBPressed();
+
+        if (_input.IsPlusPressed()) 
+            _renderer.SetCameraZoom(_renderer.CameraZoom + 0.02f);
+        if (_input.IsMinusPressed()) 
+            _renderer.SetCameraZoom(_renderer.CameraZoom - 0.02f);
 
         _player.UpdatePosition(up, down, left, right, 48, 48, msSinceLastFrame);
         if (isAttacking)
@@ -107,6 +114,12 @@ public class Engine
         {
             AddBomb(_player.Position.X, _player.Position.Y, false);
         }
+
+        if (respawn && _player.State.State == PlayerObject.PlayerState.GameOver)
+        {
+            RespawnPlayer();
+        }
+
     }
 
     public void RenderFrame()
@@ -215,4 +228,19 @@ public class Engine
         TemporaryGameObject bomb = new(spriteSheet, 2.1, (worldCoords.X, worldCoords.Y));
         _gameObjects.Add(bomb.Id, bomb);
     }
+
+    // Respawn the player at a fixed position
+    private void RespawnPlayer()
+    {
+        _gameObjects.Clear();
+
+        _player = new PlayerObject(
+            SpriteSheet.Load(_renderer, "Player.json", "Assets"),
+            400, 400 
+        );
+
+        _renderer.CameraLookAt(_player.Position.X, _player.Position.Y);
+    }
+
+
 }

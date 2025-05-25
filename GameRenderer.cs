@@ -110,4 +110,11 @@ public unsafe class GameRenderer
     {
         _sdl.RenderPresent(_renderer);
     }
+
+    public void SetCameraZoom(float zoom)
+    {
+        _camera.Zoom = zoom;
+    }
+
+    public float CameraZoom => _camera.Zoom;
 }

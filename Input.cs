@@ -49,6 +49,25 @@ public unsafe class Input
         return _keyboardState[(int)KeyCode.B] == 1;
     }
 
+    // Added more key checks for common actions
+    public bool IsPlusPressed() // Zoom in (+)
+    {
+        ReadOnlySpan<byte> keyboardState = new(_sdl.GetKeyboardState(null), (int)KeyCode.Count);
+        return keyboardState[(int)KeyCode.Equals] == 1;
+    }
+
+    public bool IsMinusPressed() // Zoom out (-)
+    {
+        ReadOnlySpan<byte> keyboardState = new(_sdl.GetKeyboardState(null), (int)KeyCode.Count);
+        return keyboardState[(int)KeyCode.Minus] == 1;
+    }
+
+    public bool IsKeyRPressed() // Respawin (R)
+    {
+        ReadOnlySpan<byte> keyboardState = new(_sdl.GetKeyboardState(null), (int)KeyCode.Count);
+        return keyboardState[(int)KeyCode.R] == 1;
+    }
+
     public bool ProcessInput()
     {
         Event ev = new Event();
