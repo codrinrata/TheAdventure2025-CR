@@ -149,7 +149,7 @@ public class Engine
             var deltaY = Math.Abs(_player.Position.Y - tempGameObject.Position.Y);
             if (deltaX < 32 && deltaY < 32)
             {
-                _player.GameOver();
+                _player.TakeDamage(1, (double)DateTimeOffset.Now.ToUnixTimeMilliseconds());
             }
         }
 
@@ -215,4 +215,21 @@ public class Engine
         TemporaryGameObject bomb = new(spriteSheet, 2.1, (worldCoords.X, worldCoords.Y));
         _gameObjects.Add(bomb.Id, bomb);
     }
+
+    // Respawn the player at a fixed position
+    private void RespawnPlayer()
+    {
+        _gameObjects.Clear();
+
+        _player = new PlayerObject(
+            SpriteSheet.Load(_renderer, "Player.json", "Assets"),
+            400, 400 
+        );
+
+        Console.WriteLine($"Player HP: {_player.CurrentHP}/{_player.MaxHP}");
+
+        _renderer.CameraLookAt(_player.Position.X, _player.Position.Y);
+    }
+
+
 }

@@ -6,6 +6,14 @@ public class PlayerObject : RenderableGameObject
 {
     private const int _speed = 128; // pixels per second
 
+    public int MaxHP { get; private set; } = 3;
+    public int CurrentHP { get; private set; }
+
+    public bool IsDead => CurrentHP <= 0;
+
+    private const double DamageCooldownMilliseconds = 1000; // 1 second cooldown
+    private double _lastDamageTime = -DamageCooldownMilliseconds; // Start as invulnerable
+    
     public enum PlayerStateDirection
     {
         None = 0,
@@ -28,6 +36,8 @@ public class PlayerObject : RenderableGameObject
 
     public PlayerObject(SpriteSheet spriteSheet, int x, int y) : base(spriteSheet, (x, y))
     {
+        MaxHP = 3;
+        CurrentHP = MaxHP;
         SetState(PlayerState.Idle, PlayerStateDirection.Down);
     }
 
@@ -81,6 +91,29 @@ public class PlayerObject : RenderableGameObject
         var direction = State.Direction;
         SetState(PlayerState.Attack, direction);
     }
+
+    public void TakeDamage(int amount, double currentTime)
+    {
+        if (State.State == PlayerState.GameOver) return;
+
+        if (currentTime - _lastDamageTime < DamageCooldownMilliseconds)
+        {
+            return;
+        }
+
+        CurrentHP -= amount;
+        Console.WriteLine($"Player HP: {CurrentHP}/{MaxHP}");
+
+        _lastDamageTime = currentTime;
+
+        if (CurrentHP <= 0)
+        {
+            CurrentHP = 0;
+            GameOver();
+        }
+    }
+
+
 
     public void UpdatePosition(double up, double down, double left, double right, int width, int height, double time)
     {
