@@ -20,6 +20,9 @@ public class Engine
     private Level _currentLevel = new();
     private PlayerObject? _player;
 
+    private bool _isPaused = false;
+    private bool _escPressedLastFrame = false;
+
     private DateTimeOffset _lastUpdate = DateTimeOffset.Now;
 
     public Engine(GameRenderer renderer, Input input)
@@ -27,7 +30,13 @@ public class Engine
         _renderer = renderer;
         _input = input;
 
-        _input.OnMouseClick += (_, coords) => AddBomb(coords.x, coords.y);
+        _input.OnMouseClick += (_, coords) =>
+        {
+            if (!_isPaused)
+            {
+                AddBomb(coords.x, coords.y);
+            }
+        };
     }
 
     public void SetupWorld()
@@ -88,6 +97,19 @@ public class Engine
             return;
         }
 
+        bool escPressed = _input.IsEscapePressed();
+        if (escPressed && !_escPressedLastFrame)
+        {
+            _isPaused = !_isPaused;
+            Console.WriteLine(_isPaused ? "Game paused" : "Game resumed");
+        }
+        _escPressedLastFrame = escPressed;
+
+        if (_isPaused)
+        {
+            return;
+        }
+
         double up = _input.IsUpPressed() ? 1.0 : 0.0;
         double down = _input.IsDownPressed() ? 1.0 : 0.0;
         double left = _input.IsLeftPressed() ? 1.0 : 0.0;
@@ -100,7 +122,7 @@ public class Engine
         {
             _player.Attack();
         }
-        
+
         _scriptEngine.ExecuteAll(this);
 
         if (addBomb)
@@ -225,8 +247,6 @@ public class Engine
             SpriteSheet.Load(_renderer, "Player.json", "Assets"),
             400, 400 
         );
-
-        Console.WriteLine($"Player HP: {_player.CurrentHP}/{_player.MaxHP}");
 
         _renderer.CameraLookAt(_player.Position.X, _player.Position.Y);
     }
