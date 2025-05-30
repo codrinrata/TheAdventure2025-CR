@@ -6,7 +6,7 @@ public class PlayerObject : RenderableGameObject
 {
     private const int _speed = 128;
 
-    public int MaxHP { get; private set; } = 1;
+    public int MaxHP { get; private set; } = 10;
     public int CurrentHP { get; private set; }
 
     public bool IsDead => CurrentHP <= 0;
@@ -36,7 +36,7 @@ public class PlayerObject : RenderableGameObject
 
     public PlayerObject(SpriteSheet spriteSheet, int x, int y) : base(spriteSheet, (x, y))
     {
-        MaxHP = 1;
+        MaxHP = 10;
         CurrentHP = MaxHP;
         SetState(PlayerState.Idle, PlayerStateDirection.Down);
     }

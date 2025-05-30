@@ -42,7 +42,7 @@ public class Engine
 
     public void SetupWorld()
     {
-        _player = new(SpriteSheet.Load(_renderer, "Player.json", "Assets"), 100, 100);
+        _player = new(SpriteSheet.Load(_renderer, "Player.json", "Assets"), 400, 400);
 
         var levelContent = File.ReadAllText(Path.Combine("Assets", "terrain.tmj"));
         var level = JsonSerializer.Deserialize<Level>(levelContent);
@@ -352,26 +352,24 @@ public class Engine
         {
             // Healthy - Green plus sign
             _renderer.SetDrawColor(0, 255, 0, 255);
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 2, y, 6, 2));  // Horizontal
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y - 2, 2, 6)); // Vertical
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 2, y + 15, 6, 2));  // Horizontal
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y + 13, 2, 6)); // Vertical
         }
         else if (healthPercentage > 0.3f)
         {
             // Injured - Yellow warning triangle
             _renderer.SetDrawColor(255, 255, 0, 255);
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 5, y, 2, 8));    // Center line
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 3, y + 2, 6, 2)); // Top part
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 1, y + 4, 10, 2)); // Bottom part
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 5, y + 7, 2, 2)); // Dot
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 5, y + 12, 2, 8));    // Center line
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 3, y + 14, 6, 2)); // Top part
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 1, y + 16, 10, 2)); // Bottom part
         }
         else if (healthPercentage > 0)
         {
-            // Critical - Red skull-like indicator
+            // Critical - Red triangle
             _renderer.SetDrawColor(255, 0, 0, 255);
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 1, y + 1, 8, 6)); // Head
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 2, y + 2, 2, 2)); // Left eye
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 6, y + 2, 2, 2)); // Right eye
-            _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y + 4, 2, 2)); // Nose
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 5, y + 12, 2, 8));    // Center line
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 3, y + 14, 6, 2)); // Top part
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 1, y + 16, 10, 2)); // Bottom part
         }
     }
 
@@ -412,8 +410,8 @@ public class Engine
         var d6 = new Rectangle<int>(centerX + 40, centerY - 30, 4, 60); // Left line
         var d7 = new Rectangle<int>(centerX + 40, centerY - 30, 36, 4); // Top line
         var d8 = new Rectangle<int>(centerX + 40, centerY + 26, 36, 4); // Bottom line
-        var d9 = new Rectangle<int>(centerX + 71, centerY - 24, 4, 30); // Top right
-        var d10 = new Rectangle<int>(centerX + 71, centerY + 6, 4, 20); // Bottom right
+        var d9 = new Rectangle<int>(centerX + 76, centerY - 24, 4, 30); // Top right
+        var d10 = new Rectangle<int>(centerX + 76, centerY + 6, 4, 20); // Bottom right
         
         // Render "DEAD"
         _renderer.RenderUIRectangle(d1);
@@ -493,7 +491,7 @@ public class Engine
             var deltaY = Math.Abs(_player.Position.Y - tempGameObject.Position.Y);
             if (deltaX < 32 && deltaY < 32)
             {
-                _player.TakeDamage(1, (double)DateTimeOffset.Now.ToUnixTimeMilliseconds());
+                _player.TakeDamage(3, (double)DateTimeOffset.Now.ToUnixTimeMilliseconds());
             }
         }
 
