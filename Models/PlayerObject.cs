@@ -4,15 +4,15 @@ namespace TheAdventure.Models;
 
 public class PlayerObject : RenderableGameObject
 {
-    private const int _speed = 128; // pixels per second
+    private const int _speed = 128;
 
-    public int MaxHP { get; private set; } = 3;
+    public int MaxHP { get; private set; } = 10;
     public int CurrentHP { get; private set; }
 
     public bool IsDead => CurrentHP <= 0;
 
-    private const double DamageCooldownMilliseconds = 1000; // 1 second cooldown
-    private double _lastDamageTime = -DamageCooldownMilliseconds; // Start as invulnerable
+    private const double DamageCooldownMilliseconds = 1000;
+    private double _lastDamageTime = -DamageCooldownMilliseconds;
     
     public enum PlayerStateDirection
     {
@@ -36,7 +36,7 @@ public class PlayerObject : RenderableGameObject
 
     public PlayerObject(SpriteSheet spriteSheet, int x, int y) : base(spriteSheet, (x, y))
     {
-        MaxHP = 3;
+        MaxHP = 10;
         CurrentHP = MaxHP;
         SetState(PlayerState.Idle, PlayerStateDirection.Down);
     }
@@ -102,7 +102,6 @@ public class PlayerObject : RenderableGameObject
         }
 
         CurrentHP -= amount;
-        Console.WriteLine($"Player HP: {CurrentHP}/{MaxHP}");
 
         _lastDamageTime = currentTime;
 
@@ -113,7 +112,20 @@ public class PlayerObject : RenderableGameObject
         }
     }
 
+    public void ResetHealth()
+    {
+        CurrentHP = MaxHP;
+    }
+    
+    public void Heal(int amount)
+    {
+        CurrentHP = Math.Min(MaxHP, CurrentHP + amount);
+    }
 
+    public void SetMaxHealth(int maxHealth)
+    {
+        MaxHP = maxHealth;
+    }
 
     public void UpdatePosition(double up, double down, double left, double right, int width, int height, double time)
     {

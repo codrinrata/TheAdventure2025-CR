@@ -120,4 +120,29 @@ public unsafe class GameRenderer
         var screenRect = _camera.ToScreenCoordinates(rect);
         _sdl.RenderDrawRect(_renderer, in screenRect);
     }
+
+    public void RenderUIRectangle(Rectangle<int> rect)
+    {
+        var screenRect = new Rectangle<int>(rect.Origin.X, rect.Origin.Y, rect.Size.X, rect.Size.Y);
+        _sdl.RenderFillRect(_renderer, in screenRect);
+    }
+
+    public void RenderUIRectangleBorder(Rectangle<int> rect)
+    {
+        var screenRect = new Rectangle<int>(rect.Origin.X, rect.Origin.Y, rect.Size.X, rect.Size.Y);
+        _sdl.RenderDrawRect(_renderer, in screenRect);
+    }
+
+    public void RenderUITexture(int textureId, Rectangle<int> src, Rectangle<int> dst,
+        RendererFlip flip = RendererFlip.None, double angle = 0.0, Point center = default)
+    {
+        if (_texturePointers.TryGetValue(textureId, out var imageTexture))
+        {
+            _sdl.RenderCopyEx(_renderer, (Texture*)imageTexture, in src,
+                in dst, angle, in center, flip);
+        }
+    }
+
+    public Sdl GetSDL() => _sdl;
+    public Renderer* GetRenderer() => _renderer;
 }

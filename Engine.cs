@@ -22,6 +22,7 @@ public class Engine
 
     private bool _isPaused = false;
     private bool _escPressedLastFrame = false;
+    private bool _rPressedLastFrame = false;
 
     private DateTimeOffset _lastUpdate = DateTimeOffset.Now;
 
@@ -105,7 +106,14 @@ public class Engine
         }
         _escPressedLastFrame = escPressed;
 
-        if (_isPaused)
+        bool rPressed = _input.IsKeyRPressed();
+        if (rPressed && !_rPressedLastFrame && _player.CurrentHP <= 0)
+        {
+            RespawnPlayer();
+        }
+        _rPressedLastFrame = rPressed;
+
+        if (_isPaused || _player.CurrentHP <= 0)
         {
             return;
         }
@@ -142,9 +150,16 @@ public class Engine
         RenderTerrain();
         RenderAllObjects();
 
+        RenderUI();
+
         if (_isPaused)
         {
             RenderPauseScreen();
+        }
+
+        if (_player.CurrentHP <= 0)
+        {
+            RenderDeathScreen();
         }
 
         _renderer.PresentFrame();
@@ -153,25 +168,295 @@ public class Engine
     private void RenderPauseScreen()
     {
         var windowSize = _renderer.GetWindowSize();
-        
+
         _renderer.SetDrawColor(0, 0, 0, 128);
         var overlayRect = new Rectangle<int>(0, 0, windowSize.Width, windowSize.Height);
-        _renderer.RenderFilledRectangle(overlayRect);
+        _renderer.RenderUIRectangle(overlayRect);
         
         int centerX = windowSize.Width / 2;
         int centerY = windowSize.Height / 2;
-        
+
         _renderer.SetDrawColor(255, 255, 255, 255);
 
         var leftBar = new Rectangle<int>(centerX - 30, centerY - 40, 20, 80);
         var rightBar = new Rectangle<int>(centerX + 10, centerY - 40, 20, 80);
         
-        _renderer.RenderFilledRectangle(leftBar);
-        _renderer.RenderFilledRectangle(rightBar);
-        
+        _renderer.RenderUIRectangle(leftBar);
+        _renderer.RenderUIRectangle(rightBar);
+
         _renderer.SetDrawColor(200, 200, 200, 255);
         var borderRect = new Rectangle<int>(centerX - 40, centerY - 50, 80, 100);
-        _renderer.RenderRectangleBorder(borderRect);
+        _renderer.RenderUIRectangleBorder(borderRect);
+    }
+
+    private void RenderUI()
+    {
+        if (_player == null) return;
+
+        var windowSize = _renderer.GetWindowSize();
+
+        int healthBarX = 20;
+        int healthBarY = 20;
+        int healthBarWidth = 200;
+        int healthBarHeight = 20;
+
+        _renderer.SetDrawColor(100, 20, 20, 255);
+        var healthBarBg = new Rectangle<int>(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+        _renderer.RenderUIRectangle(healthBarBg);
+
+        if (_player.CurrentHP > 0)
+        {
+            _renderer.SetDrawColor(50, 200, 50, 255);
+            var healthPercentage = (float)_player.CurrentHP / _player.MaxHP;
+            var currentHealthWidth = (int)(healthBarWidth * healthPercentage);
+            var healthBarFg = new Rectangle<int>(healthBarX, healthBarY, currentHealthWidth, healthBarHeight);
+            _renderer.RenderUIRectangle(healthBarFg);
+        }
+
+        _renderer.SetDrawColor(255, 255, 255, 255);
+        _renderer.RenderUIRectangleBorder(new Rectangle<int>(healthBarX, healthBarY, healthBarWidth, healthBarHeight));
+        
+        RenderHPText(healthBarX + healthBarWidth + 10, healthBarY);
+
+        RenderHealthNumbers(healthBarX, healthBarY + healthBarHeight + 5);
+
+        RenderHealthStatusIndicator(healthBarX, healthBarY - 25);
+    }
+
+    private void RenderHPText(int x, int y)
+    {
+        _renderer.SetDrawColor(255, 255, 255, 255);
+        
+        // Letter "H" made of rectangles
+        var h1 = new Rectangle<int>(x, y, 3, 20);        // Left vertical line
+        var h2 = new Rectangle<int>(x + 12, y, 3, 20);   // Right vertical line  
+        var h3 = new Rectangle<int>(x, y + 8, 15, 3);    // Middle horizontal line
+        _renderer.RenderUIRectangle(h1);
+        _renderer.RenderUIRectangle(h2);
+        _renderer.RenderUIRectangle(h3);
+        
+        // Letter "P" made of rectangles
+        int pX = x + 20;
+        var p1 = new Rectangle<int>(pX, y, 3, 20);       // Left vertical line
+        var p2 = new Rectangle<int>(pX, y, 12, 3);       // Top horizontal line
+        var p3 = new Rectangle<int>(pX + 9, y, 3, 9);    // Top right vertical line
+        var p4 = new Rectangle<int>(pX, y + 8, 12, 3);   // Middle horizontal line
+        _renderer.RenderUIRectangle(p1);
+        _renderer.RenderUIRectangle(p2);
+        _renderer.RenderUIRectangle(p3);
+        _renderer.RenderUIRectangle(p4);
+    }
+
+    private void RenderHealthNumbers(int x, int y)
+    {
+        if (_player == null) return;
+        
+        _renderer.SetDrawColor(255, 255, 255, 255);
+        
+        string healthText = $"{_player.CurrentHP}/{_player.MaxHP}";
+        
+        int digitX = x;
+        foreach (char digit in healthText)
+        {
+            if (char.IsDigit(digit))
+            {
+                RenderDigit(digit, digitX, y);
+                digitX += 8;
+            }
+            else if (digit == '/')
+            {
+                _renderer.SetDrawColor(255, 255, 255, 255);
+                var slash = new Rectangle<int>(digitX + 2, y + 2, 2, 8);
+                _renderer.RenderUIRectangle(slash);
+                digitX += 6;
+            }
+        }
+    }
+
+    private void RenderDigit(char digit, int x, int y)
+    {
+        _renderer.SetDrawColor(255, 255, 255, 255);
+        
+        switch (digit)
+        {
+            case '0':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 6, 2));     // Top
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 2, 10));    // Left
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y, 2, 10)); // Right
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 8, 6, 2)); // Bottom
+                break;
+            case '1':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y, 2, 10)); // Right only
+                break;
+            case '2':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 6, 2));     // Top
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y, 2, 5)); // Top right
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 4, 6, 2)); // Middle
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 5, 2, 5)); // Bottom left
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 8, 6, 2)); // Bottom
+                break;
+            case '3':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 6, 2));     // Top
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y, 2, 10)); // Right
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 4, 6, 2)); // Middle
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 8, 6, 2)); // Bottom
+                break;
+            case '4':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 2, 5));     // Top left
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y, 2, 10)); // Right
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 4, 6, 2)); // Middle
+                break;
+            case '5':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 6, 2));     // Top
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 2, 5));     // Top left
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 4, 6, 2)); // Middle
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y + 5, 2, 5)); // Bottom right
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 8, 6, 2)); // Bottom
+                break;
+            case '6':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 6, 2));     // Top
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 2, 10));    // Left
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 4, 6, 2)); // Middle
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y + 5, 2, 5)); // Bottom right
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 8, 6, 2)); // Bottom
+                break;
+            case '7':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 6, 2));     // Top
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y, 2, 10)); // Right
+                break;
+            case '8':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 6, 2));     // Top
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 2, 10));    // Left
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y, 2, 10)); // Right
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 4, 6, 2)); // Middle
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 8, 6, 2)); // Bottom
+                break;
+            case '9':
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 6, 2));     // Top
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y, 2, 5));     // Top left
+                _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y, 2, 10)); // Right
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 4, 6, 2)); // Middle
+                _renderer.RenderUIRectangle(new Rectangle<int>(x, y + 8, 6, 2)); // Bottom
+                break;
+        }
+    }
+
+    private void RenderHealthStatusIndicator(int x, int y)
+    {
+        if (_player == null) return;
+        
+        float healthPercentage = (float)_player.CurrentHP / _player.MaxHP;
+        
+        // Color-coded health status indicator
+        if (healthPercentage > 0.7f)
+        {
+            // Healthy - Green plus sign
+            _renderer.SetDrawColor(0, 255, 0, 255);
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 2, y, 6, 2));  // Horizontal
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y - 2, 2, 6)); // Vertical
+        }
+        else if (healthPercentage > 0.3f)
+        {
+            // Injured - Yellow warning triangle
+            _renderer.SetDrawColor(255, 255, 0, 255);
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 5, y, 2, 8));    // Center line
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 3, y + 2, 6, 2)); // Top part
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 1, y + 4, 10, 2)); // Bottom part
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 5, y + 7, 2, 2)); // Dot
+        }
+        else if (healthPercentage > 0)
+        {
+            // Critical - Red skull-like indicator
+            _renderer.SetDrawColor(255, 0, 0, 255);
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 1, y + 1, 8, 6)); // Head
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 2, y + 2, 2, 2)); // Left eye
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 6, y + 2, 2, 2)); // Right eye
+            _renderer.RenderUIRectangle(new Rectangle<int>(x + 4, y + 4, 2, 2)); // Nose
+        }
+    }
+
+    private void RenderDeathScreen()
+    {
+        var windowSize = _renderer.GetWindowSize();
+        
+        _renderer.SetDrawColor(150, 0, 0, 100);
+        var overlayRect = new Rectangle<int>(0, 0, windowSize.Width, windowSize.Height);
+        _renderer.RenderUIRectangle(overlayRect);
+        
+        int centerX = windowSize.Width / 2;
+        int centerY = windowSize.Height / 2;
+        
+        // Create "DEAD" text using rectangles
+        _renderer.SetDrawColor(255, 255, 255, 255);
+        
+        // Letter "D"
+        var d1 = new Rectangle<int>(centerX - 80, centerY - 30, 4, 60); // Left line
+        var d2 = new Rectangle<int>(centerX - 80, centerY - 30, 40, 4); // Top line
+        var d3 = new Rectangle<int>(centerX - 80, centerY + 26, 40, 4); // Bottom line
+        var d4 = new Rectangle<int>(centerX - 44, centerY - 26, 4, 20); // Top right
+        var d5 = new Rectangle<int>(centerX - 44, centerY + 6, 4, 20);  // Bottom right
+        
+        // Letter "E"
+        var e1 = new Rectangle<int>(centerX - 30, centerY - 30, 4, 60); // Left line
+        var e2 = new Rectangle<int>(centerX - 30, centerY - 30, 30, 4); // Top line
+        var e3 = new Rectangle<int>(centerX - 30, centerY - 2, 25, 4);  // Middle line
+        var e4 = new Rectangle<int>(centerX - 30, centerY + 26, 30, 4); // Bottom line
+        
+        // Letter "A"
+        var a1 = new Rectangle<int>(centerX + 10, centerY - 30, 4, 60); // Left line
+        var a2 = new Rectangle<int>(centerX + 26, centerY - 30, 4, 60); // Right line
+        var a3 = new Rectangle<int>(centerX + 10, centerY - 30, 20, 4); // Top line
+        var a4 = new Rectangle<int>(centerX + 10, centerY - 2, 20, 4);  // Middle line
+        
+        // Letter "D" (second one)
+        var d6 = new Rectangle<int>(centerX + 40, centerY - 30, 4, 60); // Left line
+        var d7 = new Rectangle<int>(centerX + 40, centerY - 30, 35, 4); // Top line
+        var d8 = new Rectangle<int>(centerX + 40, centerY + 26, 35, 4); // Bottom line
+        var d9 = new Rectangle<int>(centerX + 71, centerY - 26, 4, 20); // Top right
+        var d10 = new Rectangle<int>(centerX + 71, centerY + 6, 4, 20); // Bottom right
+        
+        // Render "DEAD"
+        _renderer.RenderUIRectangle(d1);
+        _renderer.RenderUIRectangle(d2);
+        _renderer.RenderUIRectangle(d3);
+        _renderer.RenderUIRectangle(d4);
+        _renderer.RenderUIRectangle(d5);
+        
+        _renderer.RenderUIRectangle(e1);
+        _renderer.RenderUIRectangle(e2);
+        _renderer.RenderUIRectangle(e3);
+        _renderer.RenderUIRectangle(e4);
+        
+        _renderer.RenderUIRectangle(a1);
+        _renderer.RenderUIRectangle(a2);
+        _renderer.RenderUIRectangle(a3);
+        _renderer.RenderUIRectangle(a4);
+        
+        _renderer.RenderUIRectangle(d6);
+        _renderer.RenderUIRectangle(d7);
+        _renderer.RenderUIRectangle(d8);
+        _renderer.RenderUIRectangle(d9);
+        _renderer.RenderUIRectangle(d10);
+        
+        _renderer.SetDrawColor(200, 200, 200, 255);
+        
+        var arrow1 = new Rectangle<int>(centerX - 20, centerY + 50, 40, 4);
+        var arrow2 = new Rectangle<int>(centerX + 16, centerY + 46, 4, 12);
+        _renderer.RenderUIRectangle(arrow1);
+        _renderer.RenderUIRectangle(arrow2);
+        
+        // "R" letter
+        var r1 = new Rectangle<int>(centerX - 10, centerY + 70, 4, 30); // Left line
+        var r2 = new Rectangle<int>(centerX - 10, centerY + 70, 20, 4); // Top line
+        var r3 = new Rectangle<int>(centerX + 6, centerY + 70, 4, 15);  // Top right vertical
+        var r4 = new Rectangle<int>(centerX - 10, centerY + 85, 15, 4); // Middle line
+        var r5 = new Rectangle<int>(centerX + 6, centerY + 89, 4, 11);  // Bottom right diagonal
+        
+        _renderer.RenderUIRectangle(r1);
+        _renderer.RenderUIRectangle(r2);
+        _renderer.RenderUIRectangle(r3);
+        _renderer.RenderUIRectangle(r4);
+        _renderer.RenderUIRectangle(r5);
     }
 
     public void RenderAllObjects()
