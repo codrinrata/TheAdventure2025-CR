@@ -142,7 +142,36 @@ public class Engine
         RenderTerrain();
         RenderAllObjects();
 
+        if (_isPaused)
+        {
+            RenderPauseScreen();
+        }
+
         _renderer.PresentFrame();
+    }
+
+    private void RenderPauseScreen()
+    {
+        var windowSize = _renderer.GetWindowSize();
+        
+        _renderer.SetDrawColor(0, 0, 0, 128);
+        var overlayRect = new Rectangle<int>(0, 0, windowSize.Width, windowSize.Height);
+        _renderer.RenderFilledRectangle(overlayRect);
+        
+        int centerX = windowSize.Width / 2;
+        int centerY = windowSize.Height / 2;
+        
+        _renderer.SetDrawColor(255, 255, 255, 255);
+
+        var leftBar = new Rectangle<int>(centerX - 30, centerY - 40, 20, 80);
+        var rightBar = new Rectangle<int>(centerX + 10, centerY - 40, 20, 80);
+        
+        _renderer.RenderFilledRectangle(leftBar);
+        _renderer.RenderFilledRectangle(rightBar);
+        
+        _renderer.SetDrawColor(200, 200, 200, 255);
+        var borderRect = new Rectangle<int>(centerX - 40, centerY - 50, 80, 100);
+        _renderer.RenderRectangleBorder(borderRect);
     }
 
     public void RenderAllObjects()
@@ -238,7 +267,6 @@ public class Engine
         _gameObjects.Add(bomb.Id, bomb);
     }
 
-    // Respawn the player at a fixed position
     private void RespawnPlayer()
     {
         _gameObjects.Clear();
@@ -250,6 +278,4 @@ public class Engine
 
         _renderer.CameraLookAt(_player.Position.X, _player.Position.Y);
     }
-
-
 }

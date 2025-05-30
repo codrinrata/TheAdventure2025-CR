@@ -13,7 +13,6 @@ public unsafe class GameRenderer
     private Renderer* _renderer;
     private GameWindow _window;
     private Camera _camera;
-
     private Dictionary<int, IntPtr> _texturePointers = new();
     private Dictionary<int, TextureData> _textureData = new();
     private int _textureId;
@@ -21,10 +20,8 @@ public unsafe class GameRenderer
     public GameRenderer(Sdl sdl, GameWindow window)
     {
         _sdl = sdl;
-        
         _renderer = (Renderer*)window.CreateRenderer();
         _sdl.SetRenderDrawBlendMode(_renderer, BlendMode.Blend);
-        
         _window = window;
         var windowSize = window.Size;
         _camera = new Camera(windowSize.Width, windowSize.Height);
@@ -60,21 +57,17 @@ public unsafe class GameRenderer
                 {
                     throw new Exception("Failed to create surface from image data.");
                 }
-                
                 var imageTexture = _sdl.CreateTextureFromSurface(_renderer, imageSurface);
                 if (imageTexture == null)
                 {
                     _sdl.FreeSurface(imageSurface);
                     throw new Exception("Failed to create texture from surface.");
                 }
-                
                 _sdl.FreeSurface(imageSurface);
-                
                 _textureData[_textureId] = textureInfo;
                 _texturePointers[_textureId] = (IntPtr)imageTexture;
             }
         }
-
         return _textureId++;
     }
 
@@ -109,5 +102,22 @@ public unsafe class GameRenderer
     public void PresentFrame()
     {
         _sdl.RenderPresent(_renderer);
+    }
+
+    public (int Width, int Height) GetWindowSize()
+    {
+        return _window.Size;
+    }
+
+    public void RenderFilledRectangle(Rectangle<int> rect)
+    {
+        var screenRect = _camera.ToScreenCoordinates(rect);
+        _sdl.RenderFillRect(_renderer, in screenRect);
+    }
+
+    public void RenderRectangleBorder(Rectangle<int> rect)
+    {
+        var screenRect = _camera.ToScreenCoordinates(rect);
+        _sdl.RenderDrawRect(_renderer, in screenRect);
     }
 }
