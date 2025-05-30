@@ -391,9 +391,9 @@ public class Engine
         
         // Letter "D"
         var d1 = new Rectangle<int>(centerX - 80, centerY - 30, 4, 60); // Left line
-        var d2 = new Rectangle<int>(centerX - 80, centerY - 30, 40, 4); // Top line
-        var d3 = new Rectangle<int>(centerX - 80, centerY + 26, 40, 4); // Bottom line
-        var d4 = new Rectangle<int>(centerX - 44, centerY - 26, 4, 20); // Top right
+        var d2 = new Rectangle<int>(centerX - 80, centerY - 30, 36, 4); // Top line
+        var d3 = new Rectangle<int>(centerX - 80, centerY + 26, 36, 4); // Bottom line
+        var d4 = new Rectangle<int>(centerX - 44, centerY - 24, 4, 30); // Top right
         var d5 = new Rectangle<int>(centerX - 44, centerY + 6, 4, 20);  // Bottom right
         
         // Letter "E"
@@ -410,9 +410,9 @@ public class Engine
         
         // Letter "D" (second one)
         var d6 = new Rectangle<int>(centerX + 40, centerY - 30, 4, 60); // Left line
-        var d7 = new Rectangle<int>(centerX + 40, centerY - 30, 35, 4); // Top line
-        var d8 = new Rectangle<int>(centerX + 40, centerY + 26, 35, 4); // Bottom line
-        var d9 = new Rectangle<int>(centerX + 71, centerY - 26, 4, 20); // Top right
+        var d7 = new Rectangle<int>(centerX + 40, centerY - 30, 36, 4); // Top line
+        var d8 = new Rectangle<int>(centerX + 40, centerY + 26, 36, 4); // Bottom line
+        var d9 = new Rectangle<int>(centerX + 71, centerY - 24, 4, 30); // Top right
         var d10 = new Rectangle<int>(centerX + 71, centerY + 6, 4, 20); // Bottom right
         
         // Render "DEAD"
@@ -439,11 +439,19 @@ public class Engine
         _renderer.RenderUIRectangle(d10);
         
         _renderer.SetDrawColor(200, 200, 200, 255);
+
+        var line = new Rectangle<int>(centerX - 90, centerY + 50, 180, 4);
+        _renderer.RenderUIRectangle(line);
         
-        var arrow1 = new Rectangle<int>(centerX - 20, centerY + 50, 40, 4);
-        var arrow2 = new Rectangle<int>(centerX + 16, centerY + 46, 4, 12);
+        var arrow1 = new Rectangle<int>(centerX - 60, centerY + 85, 40, 4);
+        var arrow2 = new Rectangle<int>(centerX - 30, centerY + 81, 4, 12);
         _renderer.RenderUIRectangle(arrow1);
         _renderer.RenderUIRectangle(arrow2);
+
+        var arrow3 = new Rectangle<int>(centerX + 20, centerY + 85, 40, 4);
+        var arrow4 = new Rectangle<int>(centerX + 26, centerY + 81, 4, 12);
+        _renderer.RenderUIRectangle(arrow3);
+        _renderer.RenderUIRectangle(arrow4);
         
         // "R" letter
         var r1 = new Rectangle<int>(centerX - 10, centerY + 70, 4, 30); // Left line
